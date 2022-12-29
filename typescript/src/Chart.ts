@@ -177,7 +177,7 @@ export class Chart {
             // pos0.add(this.offset);
             // let color0 = this.data2color(this.data[i]);
 
-            // this.threeSphere(this.scene, pos0, color0, this._transp, this._radius);
+            // this.threeSphere(this.scene, pos0, color0, this._transp, this._radius, this.data[i].tweet);
 
             // if (i < this.data.length - 1) {
             //     let pos1 = this.data2pos(this.data[i + 1]);
@@ -219,18 +219,16 @@ export class Chart {
     }
 
     private data2pos(d: Data): THREE.Vector3[] {
-        // Idea 3.
-        const y: number = (d.date - this.startDate) / (this.endDate - this.startDate) * this._height;
-        let r: number = Math.abs(d.score) * this._width;
-        let posList = d.emotion.map(e => {
-            const idx: number = this.emotionKeyList.indexOf(e);
-            let t: number = 2 * Math.PI / 12 * idx;
-            let x: number = Math.cos(t) * r;
-            let z: number = Math.sin(t) * r;
-            return new THREE.Vector3(x, y, z).add(this.offset);
-        });
-        return posList;
-
+        // // Idea 4.
+        // const y: number = (d.date - this.startDate) / (this.endDate - this.startDate) * this._height;
+        // let r: number = Math.abs(d.score) * this._width;
+        // let posList = d.emotion.map(e => {
+        //     const idx: number = this.emotionKeyList.indexOf(e);
+        //     let t: number = 2 * Math.PI / 12 * idx;
+        //     let x: number = Math.cos(t) * r;
+        //     let z: number = Math.sin(t) * r;
+        //     return new THREE.Vector3(x, y, z).add(this.offset);
+        // });
         // if (posList.length === 1) {
         //     let p = posList[0];
         //     return new THREE.Vector3(p.x, y, p.z);
@@ -246,10 +244,38 @@ export class Chart {
         // }
         // else if (posList.length > 3) {
         //     let p0 = posList[0];
+        //     let sumS = 0;
+        //     let tmpX = 0;
+        //     let tmpZ = 0;
         //     for (let i = 1; i < posList.length - 2; i++) {
+        //         let p1 = posList[i];
+        //         let p2 = posList[i + 1];
+                
+        //         let gx = (p0.x + p1.x + p2.x) / 3;
+        //         let gz = (p0.z + p1.z + p2.z) / 3;
+                
+        //         let s = Math.abs((p1.x - p0.x) * (p2.y - p0.y) - (p1.y - p0.y) * (p2.x - p0.x)) / 2;
 
+        //         tmpX += gx * s;
+        //         tmpZ += gz * s;
+        //         sumS += s;
         //     }
+        //     return new THREE.Vector3(tmpX / sumS, y, tmpZ / sumS);
+        // } else {
+        //     return new THREE.Vector3(0, 0, 0);
         // }
+
+        // Idea 3.
+        const y: number = (d.date - this.startDate) / (this.endDate - this.startDate) * this._height;
+        let r: number = Math.abs(d.score) * this._width;
+        let posList = d.emotion.map(e => {
+            const idx: number = this.emotionKeyList.indexOf(e);
+            let t: number = 2 * Math.PI / 12 * idx;
+            let x: number = Math.cos(t) * r;
+            let z: number = Math.sin(t) * r;
+            return new THREE.Vector3(x, y, z).add(this.offset);
+        });
+        return posList;
 
         // Idea 2. 
         // const r: number = d.score * this._width / 4;
@@ -282,21 +308,21 @@ export class Chart {
             return chroma.hsv(hue, sat, bri).name();
         }
 
-        const color1 = (): string => {
+        const color3 = (): string => {
             return '#FFF';
         }
-        const color2 = (): string => {
+        const color4 = (): string => {
             return '#000';
         }
 
-        const color3 = (): string => {
+        const color1 = (): string => {
             let hue: number = 0;
             let sat: number = 0;
             let bri: number = (d.score + 1.0) / 2.0;
             return chroma.hsv(hue, sat, bri).name();
         }
-        const color4 = (): string => {
-            let hue: number = d.score > 0 ? 10 : 350;
+        const color2 = (): string => {
+            let hue: number = d.score > 0 ? 10 : 250;
             let sat: number = Math.abs(d.score);
             let bri: number = 1.0;
             return chroma.hsv(hue, sat, bri).name();

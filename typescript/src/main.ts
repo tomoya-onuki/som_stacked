@@ -172,13 +172,23 @@ class Main {
         $(window).resize(function () {
             me.resize();
         });
+        $('#close-ui').on('click', function() {
+            $(this).hide();
+            $('#ui').hide();
+            $('#open-ui').show();
+        });
+        $('#open-ui').on('click', function() {
+            $(this).hide();
+            $('#ui').show();
+            $('#close-ui').show();
+        });
         $('#auto-rotate').on('input', function () {
             me.controls.autoRotate = $(this).prop('checked');
         });
         $('#auto-rotate-speed').on('input', function () {
             me.controls.autoRotateSpeed = Number($(this).val());
         });
-        $('#reset').on('click', function() {
+        $('#reset').on('click', function () {
             me.controls.reset();
         });
         $('#dark-mode').on('input', function () {
@@ -194,7 +204,7 @@ class Main {
                 $('button').css({
                     'background': 'rgba(34, 34, 34, 0.8)',
                     'color': '#FFF',
-                    'border-color':'#444'
+                    'border-color': '#444'
                 });
                 $('#tweet-modals').css('color', '#FFF');
                 d3.selectAll('text').attr('fill', '#fff');
@@ -210,7 +220,7 @@ class Main {
                 $('button').css({
                     'background': 'rgba(238, 238, 238, 0.8)',
                     'color': '#111',
-                    'border-color':'#ccc'
+                    'border-color': '#ccc'
                 });
                 $('#tweet-modals').css('color', '#111');
                 d3.selectAll('text').attr('fill', '#111');
@@ -234,6 +244,13 @@ class Main {
             } else {
                 $('#color').hide();
             }
+            if (mode <= 2) {
+                $('#score-gradient > div').hide();
+                $('#score-gradient > div').eq(mode).show();
+            } else {
+                $('#score-gradient').hide();
+                $('#score-label').hide();
+            }
 
             $('#load-box').fadeIn(500, function () {
                 redraw(mode)
@@ -255,7 +272,7 @@ class Main {
             let raycaster = new THREE.Raycaster();
             raycaster.setFromCamera(mouse, me.camera);
             let intersects = raycaster.intersectObjects(me.scene.children);
-            console.log(`${intersects[0].point.x}, ${intersects[0].point.y}, ${intersects[0].point.z}`);
+            // console.log(`${intersects[0].point.x}, ${intersects[0].point.y}, ${intersects[0].point.z}`);
 
             //光線と交差したオブジェクトがある場合
             if (intersects.length > 0) {

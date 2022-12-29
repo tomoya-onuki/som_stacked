@@ -14,6 +14,8 @@
 
 <body>
     <div id="view"></div>
+    <div id="close-ui">&times;</div>
+    <div id="open-ui">></div>
     <div id="ui">
         <div id="controll">
             <div class="box">
@@ -51,16 +53,25 @@
                     <label for="color-mode">- mode</label>
                     <select name="color-mode" id="color-mode">
                         <option value="0">G#hsv</option>
-                        <option value="1">M#fff</option>
-                        <option value="2">M#000</option>
-                        <option value="3">G#bri</option>
-                        <option value="4">G#hue</option>
+                        <option value="1">G#bri</option>
+                        <option value="2">G#hue</option>
+                        <option value="3">M#fff</option>
+                        <option value="4">M#000</option>
                     </select>
                 </div>
             </div>
         </div>
-
+    
         <div id="color"></div>
+        <div id="score-gradient">
+            <div></div>
+            <div></div>
+            <div></div>
+        </div>
+        <div id="score-label">
+            <div>Negative</div>
+            <div>Positive</div>
+        </div>
     </div>
 
     <div id="tweet-modals"></div>
