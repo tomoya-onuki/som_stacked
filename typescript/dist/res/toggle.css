@@ -1,0 +1,40 @@
+.toggle-box {
+    display: inline-block;
+    transform: translate(0, 4px);
+    margin: 0 2px 0 2px;
+    width: 30px;
+}
+.toggle-box input[type="checkbox"] {
+    display: none;
+}
+.toggle-box input[type="checkbox"] + label.check {
+    position: relative;
+    cursor: pointer;
+    display: inline-block;
+    width: 28px;
+    height: 16px;
+    border: 1px solid #aaa;
+    background-color: #aaa;
+    border-radius: 10px;
+}
+.toggle-box input[type="checkbox"]:checked + label.check {
+    border: 1px solid #4287f5;
+    background-color: #4287f5;
+    border-radius: 15px;
+}
+/* トグル部品 */
+.toggle-box input[type="checkbox"] + label.check > .thumb {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 10px;
+    height: 10px;
+    background-color: #FFF;
+    border: 1px solid #FFF;
+    border-radius: 100%;
+    transition: 0.2s;
+}
+.toggle-box input[type="checkbox"]:checked + label.check > .thumb {
+    border: 1px solid transparent;
+    transform: translate(100%);
+}

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SoM / stacked</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="res/toggle.css">
+    <script src="./main.js"></script>
+    <!-- <script src="res/toggle.js"></script> -->
+</head>
+
+<body>
+    <div id="view"></div>
+    <div id="ui">
+        <div id="controll">
+            <div class="box">
+                <div>Camera</div>
+                <div class="items indent">
+                    <label for="auto-rotate">- Auto</label>
+                    <div class="toggle-box">
+                        <input type="checkbox" id="auto-rotate" class="toggle-switch" checked>
+                        <label class="check" for="auto-rotate">
+                            <div class="thumb"></div>
+                        </label>
+                    </div>
+                </div>
+                <div class="items indent">
+                    <label for="auto-rotate-speed">- Speed: </label>
+                    <input type="range" id="auto-rotate-speed" min="1" max="20" value="4">
+                </div>
+                <div class="indent">
+                    <button id="reset">Reset</button>
+                </div>
+            </div>
+
+            <div class="box">
+                <div>Color</div>
+                <div class="items indent">
+                    <label for="auto-rotate">- Dark</label>
+                    <div class="toggle-box">
+                        <input type="checkbox" id="dark-mode" class="toggle-switch" checked>
+                        <label class="check" for="dark-mode">
+                            <div class="thumb"></div>
+                        </label>
+                    </div>
+                </div>
+                <div class="items indent">
+                    <label for="color-mode">- mode</label>
+                    <select name="color-mode" id="color-mode">
+                        <option value="0">G#hsv</option>
+                        <option value="1">M#fff</option>
+                        <option value="2">M#000</option>
+                        <option value="3">G#bri</option>
+                        <option value="4">G#hue</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div id="color"></div>
+    </div>
+
+    <div id="tweet-modals"></div>
+
+    <div id="footer">
+        <div>ひとりごとの形 / 積層体について</div>
+        <div>shape of monologue / stacked</div>
+        <div>&copy; 2022, Tomoya Onuki.</div>
+    </div>
+
+    <div id="load-box">
+        <div id="loader"></div>
+    </div>
+</body>
+
+</html>
