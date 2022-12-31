@@ -24,7 +24,7 @@ export class Chart {
     private objectList: {
         mesh: THREE.Mesh,
         geometry: any,
-        material: THREE.MeshBasicMaterial,
+        material: any,
     }[] = [];
 
     private emotionKeyList: string[] = [
@@ -55,11 +55,77 @@ export class Chart {
         // 2つの位置データを結ぶ線分
         // Tubeジオメトリで描く
         const path: THREE.LineCurve3 = new THREE.LineCurve3(head, tail);
-        const radSeg: number = 15;
+        const radSeg: number = 10;
         const tubeSeg: number = 1;
         const geometry: THREE.TubeGeometry = new THREE.TubeGeometry(path, tubeSeg, radius, radSeg, false);
         const mesh: THREE.Mesh = new THREE.Mesh(geometry, material);
 
+
+        this.objectList.push({
+            geometry: geometry,
+            material: material,
+            mesh: mesh,
+        });
+
+        scene.add(mesh);
+    }
+
+    private threeGradTube(scene: THREE.Scene, head: THREE.Vector3, tail: THREE.Vector3, color0: string, color1: string, transp: number, radius: number): void {
+        console.log(color0, color1);
+        // 2つの位置データを結ぶ線分
+        // Tubeジオメトリで描く
+        const path: THREE.LineCurve3 = new THREE.LineCurve3(head, tail);
+        const radSeg: number = 10;
+        const tubeSeg: number = 1;
+        const geometry: THREE.TubeGeometry = new THREE.TubeGeometry(path, tubeSeg, radius, radSeg, false);
+
+        // グラデーションのためのvertex shader
+        const vertexShader = /* glsl */`
+                uniform vec3 pos0;
+                uniform vec3 pos1;
+                varying float ratio;
+                void main() {
+                    ratio = distance(position, pos0) / distance(pos1, pos0);
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
+                }`;
+
+        // グラデーションのためのfragment shader
+        const fragmentShader = /* glsl */`
+                uniform vec3 color0;
+                uniform vec3 color1;
+                uniform float transp;
+                varying float ratio;
+                void main() {
+                    float r = color0.x * (1.0 - ratio) + color1.x * ratio;
+                    float g = color0.y * (1.0 - ratio) + color1.y * ratio;
+                    float b = color0.z * (1.0 - ratio) + color1.z * ratio;
+                    gl_FragColor = vec4(r, g, b, transp);
+                }`;
+
+        const material = new THREE.ShaderMaterial({
+            uniforms: {
+                color0: {
+                    value: new THREE.Color(color0)
+                },
+                color1: {
+                    value: new THREE.Color(color1)
+                },
+                pos0: {
+                    value: head
+                },
+                pos1: {
+                    value: tail
+                },
+                transp: {
+                    value: transp
+                }
+            },
+            vertexShader: vertexShader,
+            fragmentShader: fragmentShader,
+            transparent: true,
+        });
+
+        const mesh: THREE.Mesh = new THREE.Mesh(geometry, material);
 
         this.objectList.push({
             geometry: geometry,
@@ -76,7 +142,7 @@ export class Chart {
             transparent: true,
             opacity: transp
         });
-        const geometry: THREE.SphereGeometry = new THREE.SphereGeometry(radius, 15, 15);
+        const geometry: THREE.SphereGeometry = new THREE.SphereGeometry(radius, 10, 10);
         const mesh: THREE.Mesh = new THREE.Mesh(geometry, material);
         mesh.position.set(pos.x, pos.y, pos.z);
         mesh.name = name;
@@ -125,86 +191,33 @@ export class Chart {
     }
 
     public draw() {
-        this.threeCylinder(this.scene, new THREE.Vector3(this.offset.x, this._height / 2, this.offset.z), '#4F4F4F', 0.2, 1, this._width * 0.9);
-        this.threeCylinder(this.scene, new THREE.Vector3(this.offset.x, -this._height / 2, this.offset.z), '#4F4F4F', 0.2, 1, this._width * 0.9);
-        // this.threeCylinder(this.scene, new THREE.Vector3(this.offset.x, 0, this.offset.z), '#FFF', 0.01, this._height, this._width);
+        this.threeCylinder(this.scene, new THREE.Vector3(this.offset.x, this._height / 2, this.offset.z), '#808080', 0.1, 1, this._width * 0.9);
+        this.threeCylinder(this.scene, new THREE.Vector3(this.offset.x, -this._height / 2, this.offset.z), '#808080', 0.1, 1, this._width * 0.9);
 
         for (let i = 0; i < this.data.length; i++) {
-            const color0 = this.data2color(this.data[i]);
             const posList0 = this.data2pos(this.data[i]);
+            const colorList0 = this.data2color(this.data[i]);
             for (let j = 0; j < posList0.length; j++) {
                 let head = posList0[j];
+                let color0 = colorList0.length === posList0.length ? colorList0[j] : colorList0[0];
                 this.threeSphere(this.scene, head, color0, this._transp, this._radius, this.data[i].tweet);
 
                 if (j < posList0.length - 1) {
-                    let tail = posList0[j + 1];
-                    this.threeTube(this.scene, head, tail, color0, this._transp, this._radius * 0.5);
+                    console.log('internal : draw tube')
+                    const tail = posList0[j + 1];
+                    const color1 = colorList0.length === posList0.length ? colorList0[j + 1] : colorList0[0];
+                    this.threeGradTube(this.scene, head, tail, color0, color1, this._transp, this._radius * 0.5);
                 }
             }
-
             if (i < this.data.length - 1) {
                 const pos0 = posList0[posList0.length - 1];
-
-                const color1 = this.data2color(this.data[i + 1]);
+                const color0 = colorList0.length === posList0.length ? colorList0[posList0.length - 1] : colorList0[0];
+                const colorList1 = this.data2color(this.data[i + 1]);
+                const color1 = colorList1[0];
                 const posList1 = this.data2pos(this.data[i + 1]);
                 const pos1 = posList1[0];
-
-                // グラデーションで変化させるためにtubeを分割する
-                let diff = Math.abs(chroma(color0).hsv()[2] - chroma(color1).hsv()[2])
-                const div: number = Math.round(diff * 5) + 1;
-                const colorList = chroma.scale([color0, color1]).colors(div);
-
-                for (let j = 0; j < div; j++) {
-                    const ratio0: number = j / div;
-                    let head = new THREE.Vector3(
-                        (1 - ratio0) * pos0.x + ratio0 * pos1.x,
-                        (1 - ratio0) * pos0.y + ratio0 * pos1.y,
-                        (1 - ratio0) * pos0.z + ratio0 * pos1.z
-                    );
-
-                    const ratio1: number = (j + 1) / div;
-                    let tail = new THREE.Vector3(
-                        (1 - ratio1) * pos0.x + ratio1 * pos1.x,
-                        (1 - ratio1) * pos0.y + ratio1 * pos1.y,
-                        (1 - ratio1) * pos0.z + ratio1 * pos1.z
-                    );
-                    this.threeTube(this.scene, head, tail, colorList[j], this._transp, this._radius * 0.5);
-                }
+                this.threeGradTube(this.scene, pos0, pos1, color0, color1, this._transp, this._radius * 0.5);
             }
-
-
-            // let pos0 = this.data2pos(this.data[i]);
-            // pos0.add(this.offset);
-            // let color0 = this.data2color(this.data[i]);
-
-            // this.threeSphere(this.scene, pos0, color0, this._transp, this._radius, this.data[i].tweet);
-
-            // if (i < this.data.length - 1) {
-            //     let pos1 = this.data2pos(this.data[i + 1]);
-            //     pos1.add(this.offset);
-            //     let color1 = this.data2color(this.data[i + 1]);
-
-            //     // グラデーションで変化させるためにtubeを分割する
-            //     let diff = Math.abs(chroma(color0).hsv()[2] - chroma(color1).hsv()[2])
-            //     const div: number = Math.round(diff * 20) + 1;
-            //     const colorList = chroma.scale([color0, color1]).colors(div);
-            //     for (let j = 0; j < div; j++) {
-            //         const ratio0: number = j / div;
-            //         let head = new THREE.Vector3(
-            //             (1 - ratio0) * pos0.x + ratio0 * pos1.x,
-            //             (1 - ratio0) * pos0.y + ratio0 * pos1.y,
-            //             (1 - ratio0) * pos0.z + ratio0 * pos1.z
-            //         );
-
-            //         const ratio1: number = (j + 1) / div;
-            //         let tail = new THREE.Vector3(
-            //             (1 - ratio1) * pos0.x + ratio1 * pos1.x,
-            //             (1 - ratio1) * pos0.y + ratio1 * pos1.y,
-            //             (1 - ratio1) * pos0.z + ratio1 * pos1.z
-            //         );
-            //         this.threeTube(this.scene, head, tail, colorList[j], this._transp, this._radius);
-            //     }
-            // }
         }
     }
 
@@ -250,10 +263,10 @@ export class Chart {
         //     for (let i = 1; i < posList.length - 2; i++) {
         //         let p1 = posList[i];
         //         let p2 = posList[i + 1];
-                
+
         //         let gx = (p0.x + p1.x + p2.x) / 3;
         //         let gz = (p0.z + p1.z + p2.z) / 3;
-                
+
         //         let s = Math.abs((p1.x - p0.x) * (p2.y - p0.y) - (p1.y - p0.y) * (p2.x - p0.x)) / 2;
 
         //         tmpX += gx * s;
@@ -270,7 +283,7 @@ export class Chart {
         let r: number = Math.abs(d.score) * this._width;
         let posList = d.emotion.map(e => {
             const idx: number = this.emotionKeyList.indexOf(e);
-            let t: number = 2 * Math.PI / 12 * idx;
+            let t: number = 2 * Math.PI / this.emotionKeyList.length * idx;
             let x: number = Math.cos(t) * r;
             let z: number = Math.sin(t) * r;
             return new THREE.Vector3(x, y, z).add(this.offset);
@@ -297,42 +310,52 @@ export class Chart {
         this.colorMode = mode;
     }
 
-    private data2color(d: Data): string {
+    private data2color(d: Data): string[] {
 
-        const color0 = (): string => {
+        const color0 = (): string[] => {
             const month: number = Number(dayjs(d.date).format('MM'));
             const year: number = Number(dayjs(d.date).format('YYYY'));
             let hue: number = month > 10 ? (22 - month) * 25 + 10 : (10 - month) * 25 + 10;
             let sat: number = (year - 2017) / (2022 - 2017) * 0.8 + 0.1; // sat = [0.1, 0.9]
             let bri: number = (d.score + 1.0) / 2.0;
-            return chroma.hsv(hue, sat, bri).name();
+            return [chroma.hsv(hue, sat, bri).name()];
         }
 
-        const color3 = (): string => {
-            return '#FFF';
-        }
-        const color4 = (): string => {
-            return '#000';
-        }
 
-        const color1 = (): string => {
+        const color1 = (): string[] => {
             let hue: number = 0;
             let sat: number = 0;
             let bri: number = (d.score + 1.0) / 2.0;
-            return chroma.hsv(hue, sat, bri).name();
+            return [chroma.hsv(hue, sat, bri).name()];
         }
-        const color2 = (): string => {
+        const color2 = (): string[] => {
             let hue: number = d.score > 0 ? 10 : 250;
             let sat: number = Math.abs(d.score);
             let bri: number = 1.0;
-            return chroma.hsv(hue, sat, bri).name();
+            return [chroma.hsv(hue, sat, bri).name()];
         }
 
+        const color3 = (): string[] => {
+            let sat: number = 0.8;
+            let bri: number = 1.0;
+            return d.emotion.map(e => {
+                let i = this.emotionKeyList.indexOf(e);
+                let hue: number = i / this.emotionKeyList.length * 360;
+                return chroma.hsv(hue, sat, bri).name();
+            });
+        }
+
+        const color4 = (): string[] => {
+            return ['#FFF'];
+        }
+        const color5 = (): string[] => {
+            return ['#000'];
+        }
 
         let color = [
             color0(), color1(),
             color2(), color3(),
-            color4(),
+            color4(), color5(),
         ];
         return color[this.colorMode];
     }

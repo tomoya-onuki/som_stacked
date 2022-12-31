@@ -1,4 +1,4 @@
-import dayjs from 'dayjs';
+import dayjs, { Dayjs } from 'dayjs';
 import chroma from 'chroma-js';
 import $ = require('jquery');
 declare var require: any;
@@ -21,6 +21,8 @@ class Main {
     private controls: OrbitControls;
 
     private chartList: { chart: Chart, date: number }[] = [];
+    private startDate: Dayjs = dayjs();
+    private endDate: Dayjs = dayjs();
 
     constructor() {
         let cvsWidth: number = Number($('#view').width());
@@ -38,6 +40,7 @@ class Main {
         this.renderer.setSize(cvsWidth, cvsHeight);
         this.camera.aspect = cvsWidth / cvsHeight;
         this.camera.updateProjectionMatrix();
+        this.renderer.debug.checkShaderErrors = true;
 
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
         // 動きのなめらかさ
@@ -72,19 +75,35 @@ class Main {
                 let dataSet: DataSet = new DataSet();
                 dataSet.entry(csvString);
 
-                let start: any = dayjs(dataSet.get()[0].date).startOf('month');
-                let end: any = dayjs(dataSet.get()[dataSet.get().length - 1].date).endOf('month');
+                this.startDate = dayjs(dataSet.get()[0].date).startOf('month');
+                this.endDate = dayjs(dataSet.get()[dataSet.get().length - 1].date).endOf('month');
+                let startYear: number = Number(this.startDate.format('YYYY'));
+                let endYear: number = Number(this.endDate.format('YYYY'));
+                
+                // 
+                // this.startDate = dayjs('2018-1-1').endOf('month');
+                // this.endDate = dayjs('2018-12-31').endOf('month');
 
-                // console.log(dataSet.get());
-
-                let date: any = start;
-                while (date.valueOf() < end.valueOf()) {
+                const margin: number = 50;
+                let date: Dayjs = this.startDate;
+                while (date.valueOf() < this.endDate.valueOf()) {
                     let date1 = date.add(1, 'M');
                     let chart: Chart = new Chart(this.scene);
                     let data: Data[] = dataSet.slice(date.valueOf(), date1.valueOf());
 
                     if (data.length > 0) {
                         chart.entryData(data);
+
+                        let month = Number(dayjs(date).format('MM'));
+                        let year = Number(dayjs(date).format('YYYY'));
+                        let x = (month - 1) * (chart.width + margin);
+                        let z = (year - startYear) * (chart.depth + margin);
+                        let offsetX: number = -(chart.width + margin) * 12 / 2;
+                        let offsetY: number = -chart.height / 2;
+                        let offsetZ: number = -(chart.depth + margin) * (endYear - startYear) / 2;
+                        chart.translate(x + offsetX, 0 + offsetY, z + offsetZ);
+                        chart.draw();
+
                         this.chartList.push({
                             chart: chart,
                             date: date.valueOf()
@@ -93,75 +112,8 @@ class Main {
                     date = date1;
                 }
 
-                let startYear: number = Number(start.format('YYYY'));
-                let endYear: number = Number(end.format('YYYY'));
-
-
-                const margin: number = 50;
-                const cw: number = Number($("#color").width()) + 60;
-                const ch: number = Number($("#color").height()) + 20;
-                const svg = d3.select("#color")
-                    .append("svg")
-                    .attr("width", cw)
-                    .attr("height", ch);
-
-                let yearList: string[] = [];
-                let monthList: number[] = [];
-                this.chartList.forEach(obj => {
-                    let month = Number(dayjs(obj.date).format('MM'));
-                    let year = Number(dayjs(obj.date).format('YYYY'));
-                    let x = (month - 1) * (obj.chart.width + margin);
-                    let z = (year - startYear) * (obj.chart.depth + margin);
-                    let offsetX: number = -(obj.chart.width + margin) * 12 / 2;
-                    let offsetY: number = -obj.chart.height / 2;
-                    let offsetZ: number = -(obj.chart.depth + margin) * (endYear - startYear) / 2;
-                    obj.chart.translate(x + offsetX, 0 + offsetY, z + offsetZ);
-                    obj.chart.draw();
-
-                    let s = (year - startYear) / (endYear - startYear) * 0.8 + 0.1;
-                    let h = month > 10 ? (22 - month) * 25 + 10 : (10 - month) * 25 + 10;
-                    let b = 1.0;
-
-                    svg.append('rect')
-                        .attr('x', (month - 1) * 12)
-                        .attr('y', (year - startYear) * 12)
-                        .attr('transform', 'translate(25, 10)')
-                        .attr('width', 10)
-                        .attr('height', 10)
-                        .attr("rx", 2)
-                        .attr("ry", 2)
-                        .attr('fill', chroma.hsv(h, s, b).name())
-
-                    yearList.push(String(year));
-                    monthList.push(month);
-
-                });
-                svg.selectAll()
-                    .data(Array.from(new Set(yearList)))
-                    .enter()
-                    .append('text')
-                    .attr('transform', 'translate(0, 12)')
-                    .attr('x', 0)
-                    .attr('y', (d, i) => i * 12)
-                    .attr('fill', '#FFF')
-                    .attr('dominant-baseline', 'text-before-edge')
-                    .text((d) => d);
-
-                svg.append('text')
-                    .attr('x', 0)
-                    .attr('y', 0)
-                    .attr('transform', 'translate(25, 0)')
-                    .attr('fill', '#FFF')
-                    .attr('dominant-baseline', 'text-before-edge')
-                    .text('Jan');
-                svg.append('text')
-                    .attr('x', 12 * 11)
-                    .attr('y', 0)
-                    .attr('transform', 'translate(25, 0)')
-                    .attr('fill', '#FFF')
-                    .attr('dominant-baseline', 'text-before-edge')
-                    .text('Dec');
-
+                this.dateColorSet();
+                this.emotionColorSet();
                 $('#load-box').fadeOut();
             })
             .catch(err => console.log(err));
@@ -172,12 +124,12 @@ class Main {
         $(window).resize(function () {
             me.resize();
         });
-        $('#close-ui').on('click', function() {
+        $('#close-ui').on('click', function () {
             $(this).hide();
             $('#ui').hide();
             $('#open-ui').show();
         });
-        $('#open-ui').on('click', function() {
+        $('#open-ui').on('click', function () {
             $(this).hide();
             $('#ui').show();
             $('#close-ui').show();
@@ -227,7 +179,6 @@ class Main {
             }
         });
         $('#color-mode').on('input', function () {
-
             async function redraw(mode: number) {
                 return new Promise((resolve, reject) => {
                     me.chartList.forEach(obj => {
@@ -240,11 +191,16 @@ class Main {
 
             let mode: number = Number($(this).find('option:selected').val());
             if (mode === 0) {
-                $('#color').show();
+                $('#date-color-scheme').show();
             } else {
-                $('#color').hide();
+                $('#date-color-scheme').hide();
             }
-            if (mode <= 2) {
+            if(mode === 3) {
+                $('#emotion-color-scheme').show();
+            } else {
+                $('#emotion-color-scheme').hide();
+            }
+            if (mode < 3) {
                 $('#score-gradient > div').hide();
                 $('#score-gradient > div').eq(mode).show();
             } else {
@@ -258,7 +214,6 @@ class Main {
                         $('#load-box').fadeOut();
                     });
             });
-
         });
 
         let visTweetObjID: string[] = [];
@@ -313,5 +268,106 @@ class Main {
 
         this.camera.aspect = cvsWidth / cvsHeight;
         this.camera.updateProjectionMatrix();
+    }
+
+    private dateColorSet() {
+
+        const cw: number = Number($("#date-color-scheme").width()) + 60;
+        const ch: number = Number($("#date-color-scheme").height()) + 20;
+        const svg = d3.select("#date-color-scheme")
+            .append("svg")
+            .attr("width", cw)
+            .attr("height", ch);
+
+        let yearList: string[] = [];
+        let monthList: number[] = [];
+
+        let startYear: number = Number(this.startDate.format('YYYY'));
+        let endYear: number = Number(this.endDate.format('YYYY'));
+
+        this.chartList.forEach(obj => {
+
+            let month = Number(dayjs(obj.date).format('MM'));
+            let year = Number(dayjs(obj.date).format('YYYY'));
+            let s = (year - startYear) / (endYear - startYear) * 0.8 + 0.1;
+            let h = month > 10 ? (22 - month) * 25 + 10 : (10 - month) * 25 + 10;
+            let b = 1.0;
+
+            svg.append('rect')
+                .attr('x', (month - 1) * 12)
+                .attr('y', (year - startYear) * 12)
+                .attr('transform', 'translate(25, 10)')
+                .attr('width', 10)
+                .attr('height', 10)
+                .attr("rx", 2)
+                .attr("ry", 2)
+                .attr('fill', chroma.hsv(h, s, b).name())
+
+            yearList.push(String(year));
+            monthList.push(month);
+
+        });
+
+
+        svg.selectAll()
+            .data(Array.from(new Set(yearList)))
+            .enter()
+            .append('text')
+            .attr('transform', 'translate(0, 12)')
+            .attr('x', 0)
+            .attr('y', (d, i) => i * 12)
+            .attr('fill', '#FFF')
+            .attr('dominant-baseline', 'text-before-edge')
+            .text((d) => d);
+
+        svg.append('text')
+            .attr('x', 0)
+            .attr('y', 0)
+            .attr('transform', 'translate(25, 0)')
+            .attr('fill', '#FFF')
+            .attr('dominant-baseline', 'text-before-edge')
+            .text('Jan');
+        svg.append('text')
+            .attr('x', 12 * 11)
+            .attr('y', 0)
+            .attr('transform', 'translate(25, 0)')
+            .attr('fill', '#FFF')
+            .attr('dominant-baseline', 'text-before-edge')
+            .text('Dec');
+    }
+
+    private emotionColorSet() {
+        const emotionKeyList: string[] = [
+            'positive', 'yorokobi', 'odoroki',
+            'takaburi', 'ikari', 'kowa',
+            'negative', 'iya', 'haji',
+            'aware', 'yasu', 'suki',
+        ];
+        const cw: number = Number($("#emotion-color-scheme").width());
+        const ch: number = Number($("#emotion-color-scheme").height());
+        const svg = d3.select("#emotion-color-scheme")
+            .append("svg")
+            .attr("width", cw)
+            .attr("height", ch);
+
+        emotionKeyList.forEach((e, i) => {
+            let hue: number = i / emotionKeyList.length * 360;
+
+            svg.append('rect')
+                .attr('x', i * 14)
+                .attr('y', 0)
+                // .attr('transform', 'translate(25, 10)')
+                .attr('width', 12)
+                .attr('height', 12)
+                .attr("rx", 2)
+                .attr("ry", 2)
+                .attr('fill', chroma.hsv(hue, 1.0, 1.0).name());
+            svg.append('text')
+                .attr('x', 0)
+                .attr('y', 0)
+                .attr('transform', `translate(${i * 14 + 3}, 15) rotate(90)`)
+                .attr('fill', '#FFF')
+                .text(e);
+        });
     }
 }

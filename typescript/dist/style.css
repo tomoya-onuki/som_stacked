@@ -1,4 +1,5 @@
 body {
+    font-family: Arial, Helvetica, sans-serif;
     margin: 0;
     padding: 0;
     background: #222;
@@ -53,10 +54,16 @@ body {
     display: none;
 }
 
-#color {
+#date-color-scheme {
     font-size: 60%;
     width: 200px;
     height: 100px;
+}
+#emotion-color-scheme {
+    font-size: 60%;
+    width: 200px;
+    height: 60px; 
+    display: none;
 }
 
 #score-gradient,
@@ -83,6 +90,10 @@ body {
 
 #score-gradient div:nth-child(3) {
     background: linear-gradient(90deg, rgba(85, 51, 255, 1) 0%, rgba(255, 255, 255, 1) 50%, rgba(255, 85, 51, 1) 100%);
+    display: none;
+}
+#score-gradient div:nth-child(4) {
+    background: linear-gradient(90deg, rgba(0, 0, 0, 1) 0%, rgba(255, 255, 255, 1) 100%);
     display: none;
 }
 
