@@ -71,11 +71,10 @@ export class Chart {
     }
 
     private threeGradTube(scene: THREE.Scene, head: THREE.Vector3, tail: THREE.Vector3, color0: string, color1: string, transp: number, radius: number): void {
-        console.log(color0, color1);
         // 2つの位置データを結ぶ線分
         // Tubeジオメトリで描く
         const path: THREE.LineCurve3 = new THREE.LineCurve3(head, tail);
-        const radSeg: number = 10;
+        const radSeg: number = 8;
         const tubeSeg: number = 1;
         const geometry: THREE.TubeGeometry = new THREE.TubeGeometry(path, tubeSeg, radius, radSeg, false);
 
@@ -135,6 +134,7 @@ export class Chart {
 
         scene.add(mesh);
     }
+    
 
     private threeSphere(scene: THREE.Scene, pos: THREE.Vector3, color: string, transp: number, radius: number, name: string): void {
         const material: THREE.MeshBasicMaterial = new THREE.MeshBasicMaterial({
@@ -194,6 +194,8 @@ export class Chart {
         this.threeCylinder(this.scene, new THREE.Vector3(this.offset.x, this._height / 2, this.offset.z), '#808080', 0.1, 1, this._width * 0.9);
         this.threeCylinder(this.scene, new THREE.Vector3(this.offset.x, -this._height / 2, this.offset.z), '#808080', 0.1, 1, this._width * 0.9);
 
+        // let colorList: string[] = [];
+        // let posList: THREE.Vector3[] = [];
         for (let i = 0; i < this.data.length; i++) {
             const posList0 = this.data2pos(this.data[i]);
             const colorList0 = this.data2color(this.data[i]);
@@ -203,7 +205,6 @@ export class Chart {
                 this.threeSphere(this.scene, head, color0, this._transp, this._radius, this.data[i].tweet);
 
                 if (j < posList0.length - 1) {
-                    console.log('internal : draw tube')
                     const tail = posList0[j + 1];
                     const color1 = colorList0.length === posList0.length ? colorList0[j + 1] : colorList0[0];
                     this.threeGradTube(this.scene, head, tail, color0, color1, this._transp, this._radius * 0.5);
