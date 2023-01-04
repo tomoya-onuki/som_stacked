@@ -4,6 +4,7 @@ import $ = require('jquery');
 declare var require: any;
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import Stats from 'three/examples/jsm/libs/stats.module';
 import * as d3 from 'd3';
 import { Chart } from './Chart';
 import { Data } from './Data';
@@ -23,6 +24,7 @@ class Main {
     private chartList: { chart: Chart, date: number }[] = [];
     private startDate: Dayjs = dayjs();
     private endDate: Dayjs = dayjs();
+    private stats = Stats();
 
     constructor() {
         let cvsWidth: number = Number($('#view').width());
@@ -30,11 +32,11 @@ class Main {
 
         this.renderer = new THREE.WebGLRenderer({ alpha: true });
         this.scene = new THREE.Scene();
-        this.camera = new THREE.PerspectiveCamera(50, cvsWidth / cvsHeight, 1, 5000);
+        this.camera = new THREE.PerspectiveCamera(50, cvsWidth / cvsHeight, 1, 1000);
 
         // レンダラーを作成
         $("#view").append(this.renderer.domElement)
-        this.camera.position.set(300, 0, 300);   // cameraの設定
+        this.camera.position.set(60, 0, 60);   // cameraの設定
 
         this.renderer.setPixelRatio(window.devicePixelRatio);
         this.renderer.setSize(cvsWidth, cvsHeight);
@@ -50,55 +52,55 @@ class Main {
         // this.controls.maxPolarAngle = Math.PI / 2;
         // this.controls.minPolarAngle = -Math.PI / 2;
         // ズームの制限
-        this.controls.maxDistance = 1200;
-        this.controls.minDistance = 10;
+        this.controls.maxDistance = 240;
+        this.controls.minDistance = 2;
         // 自動回転
         this.controls.autoRotate = true;
         this.controls.autoRotateSpeed = 4.0;
 
         // const axes = new THREE.AxesHelper(100);
         // this.scene.add(axes);
-
-
+        
+        // this.stats.showPanel(0);
+        // document.body.appendChild(this.stats.dom);
     }
 
     public init() {
         this.addEvent();
         this.render();
 
-        // let chart: Chart = new Chart(this.scene);
-
-
         fetch('outdata.csv')
             .then(response => response.text())
             .then(csvString => {
                 let dataSet: DataSet = new DataSet();
                 dataSet.entry(csvString);
+                // dataSet.get().forEach(d => console.log(dayjs(d.date).format()));
+                // this.startDate = dayjs(dataSet.get()[0].date).startOf('month');
+                // this.endDate = dayjs(dataSet.get()[dataSet.get().length - 1].date).endOf('month');
+                // this.startDate = dayjs('2020-1-1').startOf('month');
+                // this.endDate = dayjs('2020-12-31').endOf('month');
+                this.startDate = dayjs('2017-1-1').startOf('month');
+                this.endDate = dayjs('2022-12-31').endOf('month');
 
-                this.startDate = dayjs(dataSet.get()[0].date).startOf('month');
-                this.endDate = dayjs(dataSet.get()[dataSet.get().length - 1].date).endOf('month');
                 let startYear: number = Number(this.startDate.format('YYYY'));
                 let endYear: number = Number(this.endDate.format('YYYY'));
-                
-                // 
-                // this.startDate = dayjs('2018-1-1').endOf('month');
-                // this.endDate = dayjs('2018-12-31').endOf('month');
 
-                const margin: number = 50;
+                const margin: number = 10;
                 let date: Dayjs = this.startDate;
-                while (date.valueOf() < this.endDate.valueOf()) {
+                while (date.valueOf() <= this.endDate.valueOf()) {
                     let date1 = date.add(1, 'M');
                     let chart: Chart = new Chart(this.scene);
                     let data: Data[] = dataSet.slice(date.valueOf(), date1.valueOf());
 
                     if (data.length > 0) {
                         chart.entryData(data);
+                        // console.table(data.map(d => dayjs(d.date).format()));
 
                         let month = Number(dayjs(date).format('MM'));
                         let year = Number(dayjs(date).format('YYYY'));
                         let x = (month - 1) * (chart.width + margin);
                         let z = (year - startYear) * (chart.depth + margin);
-                        let offsetX: number = -(chart.width + margin) * 12 / 2;
+                        let offsetX: number = -(chart.width * 12 + margin * 11) / 2;
                         let offsetY: number = -chart.height / 2;
                         let offsetZ: number = -(chart.depth + margin) * (endYear - startYear) / 2;
                         chart.translate(x + offsetX, 0 + offsetY, z + offsetZ);
@@ -195,7 +197,7 @@ class Main {
             } else {
                 $('#date-color-scheme').hide();
             }
-            if(mode === 3) {
+            if (mode === 3) {
                 $('#emotion-color-scheme').show();
             } else {
                 $('#emotion-color-scheme').hide();
@@ -251,12 +253,26 @@ class Main {
 
     private render() {
         const me = this;
+        let frame: number = 0;
         const tick = () => {
             requestAnimationFrame(tick);
+
+            me.stats.begin();
+            me.stats.end();
             me.controls.update();
             me.renderer.render(me.scene, me.camera);
+            // frame++;
+            // if (frame % 2 != 0) {
+            // }
         };
         tick(); // 初回の実行
+
+        // setInterval(() => {
+        //     me.stats.begin();
+        //     me.controls.update();
+        //     me.renderer.render(me.scene, me.camera);
+        //     me.stats.end();
+        // }, 1000 / 24);
     }
 
     private resize() {
@@ -338,10 +354,16 @@ class Main {
 
     private emotionColorSet() {
         const emotionKeyList: string[] = [
-            'positive', 'yorokobi', 'odoroki',
-            'takaburi', 'ikari', 'kowa',
-            'negative', 'iya', 'haji',
-            'aware', 'yasu', 'suki',
+            'takaburi', 'odoroki', 'yorokobi',
+            'positive', 'suki', 'yasu',
+            'aware', 'haji', 'iya',
+            'negative', 'kowa', 'ikari',
+        ];
+        const emotionWordEn: string[] = [
+            'excitement', 'surprise', 'joy',
+            'positive', 'like', 'serenity',
+            'sadness', 'shame', 'disgust',
+            'negative', 'fear', 'anger',
         ];
         const cw: number = Number($("#emotion-color-scheme").width());
         const ch: number = Number($("#emotion-color-scheme").height());
@@ -367,7 +389,7 @@ class Main {
                 .attr('y', 0)
                 .attr('transform', `translate(${i * 14 + 3}, 15) rotate(90)`)
                 .attr('fill', '#FFF')
-                .text(e);
+                .text(emotionWordEn[i]);
         });
     }
 }

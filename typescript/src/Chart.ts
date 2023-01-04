@@ -14,10 +14,10 @@ export class Chart {
     private startDate: number = 0;
     private endDate: number = 0;
     private offset: THREE.Vector3 = new THREE.Vector3(0, 0, 0);
-    private _width: number = 50;
-    private _height: number = 300;
-    private _depth: number = 50;
-    private _radius: number = 1.0;
+    private _width: number = 10;
+    private _height: number = 60;
+    private _depth: number = 10;
+    private _radius: number = 0.2;
     private _transp: number = 0.5;
     private colorMode: number = 0;
 
@@ -28,11 +28,12 @@ export class Chart {
     }[] = [];
 
     private emotionKeyList: string[] = [
-        'positive', 'yorokobi', 'odoroki',
-        'takaburi', 'ikari', 'kowa',
-        'negative', 'iya', 'haji',
-        'aware', 'yasu', 'suki',
+        'takaburi', 'odoroki', 'yorokobi',
+        'positive', 'suki', 'yasu',
+        'aware', 'haji', 'iya',
+        'negative', 'kowa', 'ikari',
     ];
+
 
     constructor(_scene: THREE.Scene) {
         this.scene = _scene;
@@ -74,7 +75,7 @@ export class Chart {
         // 2つの位置データを結ぶ線分
         // Tubeジオメトリで描く
         const path: THREE.LineCurve3 = new THREE.LineCurve3(head, tail);
-        const radSeg: number = 8;
+        const radSeg: number = 6;
         const tubeSeg: number = 1;
         const geometry: THREE.TubeGeometry = new THREE.TubeGeometry(path, tubeSeg, radius, radSeg, false);
 
@@ -134,15 +135,77 @@ export class Chart {
 
         scene.add(mesh);
     }
-    
 
-    private threeSphere(scene: THREE.Scene, pos: THREE.Vector3, color: string, transp: number, radius: number, name: string): void {
+
+    // private tubeGeometry(head: THREE.Vector3, tail: THREE.Vector3, radius: number): THREE.TubeGeometry {
+    //     const path: THREE.LineCurve3 = new THREE.LineCurve3(head, tail);
+    //     const radSeg: number = 8;
+    //     const tubeSeg: number = 1;
+    //     return new THREE.TubeGeometry(path, tubeSeg, radius, radSeg, false);
+    // }
+
+    // private tubeMaterial(posList: THREE.Vector3[], colorList: string[], transp: number): THREE.ShaderMaterial {
+    //     const vertexShader = /* glsl */`
+    //             uniform vec3[${posList.length}] posList;
+    //             varying float ratio;
+    //             flat out int index;
+    //             void main() {
+    //                 index = 0;
+    //                 ratio = 0.0;
+    //                 for (int i = 0; i < ${posList.length - 1}; i++) {
+    //                     vec3 pos0 = posList[i];
+    //                     vec3 pos1 = posList[i + 1];
+    //                     if (pos1.y > position.y) {
+    //                         ratio = distance(position, pos0) / distance(pos1, pos0);
+    //                         index = i;
+    //                         break;
+    //                     }
+    //                 }
+    //                 gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
+    //             }`;
+
+    //     // グラデーション
+    //     const fragmentShader = /* glsl */`
+    //             uniform vec3[${colorList.length}] colorList;
+    //             uniform float transp;
+    //             varying float ratio;
+    //             flat in int index;
+    //             void main() {
+    //                 vec3 color0 = colorList[index];
+    //                 vec3 color1 = colorList[index + 1];
+    //                 float r = color0.x * (1.0 - ratio) + color1.x * ratio;
+    //                 float g = color0.y * (1.0 - ratio) + color1.y * ratio;
+    //                 float b = color0.z * (1.0 - ratio) + color1.z * ratio;
+    //                 // gl_FragColor = vec4(r, g, b, transp);
+    //                 gl_FragColor = vec4(ratio, 0, 0, transp);
+    //             }`;
+
+    //     return new THREE.ShaderMaterial({
+    //         uniforms: {
+    //             colorList: {
+    //                 value: colorList.map(color => new THREE.Color(color))
+    //             },
+    //             poslist: {
+    //                 value: posList
+    //             },
+    //             transp: {
+    //                 value: transp
+    //             }
+    //         },
+    //         vertexShader: vertexShader,
+    //         fragmentShader: fragmentShader,
+    //         transparent: true,
+    //     });
+    // }
+
+
+    private threeSphere(scene: THREE.Scene, pos: THREE.Vector3, color: string, transp: number, geometry: THREE.SphereGeometry, name: string): void {
         const material: THREE.MeshBasicMaterial = new THREE.MeshBasicMaterial({
             color: new THREE.Color(color),
             transparent: true,
             opacity: transp
         });
-        const geometry: THREE.SphereGeometry = new THREE.SphereGeometry(radius, 10, 10);
+        
         const mesh: THREE.Mesh = new THREE.Mesh(geometry, material);
         mesh.position.set(pos.x, pos.y, pos.z);
         mesh.name = name;
@@ -157,7 +220,7 @@ export class Chart {
     }
 
     private threeCylinder(scene: THREE.Scene, pos: THREE.Vector3, color: string, transp: number, height: number, radius: number) {
-        const geometry: THREE.CylinderGeometry = new THREE.CylinderGeometry(radius, radius, height, 32, 1, false)
+        const geometry: THREE.CylinderGeometry = new THREE.CylinderGeometry(radius, radius, height, 32, 1, false);
         const material: THREE.MeshBasicMaterial = new THREE.MeshBasicMaterial({
             color: new THREE.Color(color),
             transparent: true,
@@ -191,34 +254,49 @@ export class Chart {
     }
 
     public draw() {
-        this.threeCylinder(this.scene, new THREE.Vector3(this.offset.x, this._height / 2, this.offset.z), '#808080', 0.1, 1, this._width * 0.9);
-        this.threeCylinder(this.scene, new THREE.Vector3(this.offset.x, -this._height / 2, this.offset.z), '#808080', 0.1, 1, this._width * 0.9);
+        // 上下の円
+        const geometry: THREE.CylinderGeometry = new THREE.CylinderGeometry(this._width * 0.9, this._width * 0.9, 1, 32, 1, false)
+        const material: THREE.MeshBasicMaterial = new THREE.MeshBasicMaterial({
+            color: new THREE.Color('#808080'),
+            transparent: true,
+            opacity: 0.1,
+        });
+        const meshTop: THREE.Mesh = new THREE.Mesh(geometry, material);
+        meshTop.position.set(this.offset.x, this._height / 2, this.offset.z);
+        this.scene.add(meshTop);
+        const meshBtm: THREE.Mesh = new THREE.Mesh(geometry, material);
+        meshBtm.position.set(this.offset.x, -this._height / 2, this.offset.z);
+        this.scene.add(meshBtm);
 
-        // let colorList: string[] = [];
-        // let posList: THREE.Vector3[] = [];
+        let posList: THREE.Vector3[] = [];
+        let colorList: string[] = [];
+        const sphereGeometry: THREE.SphereGeometry = new THREE.SphereGeometry(this._radius, 10, 10);
+        
         for (let i = 0; i < this.data.length; i++) {
             const posList0 = this.data2pos(this.data[i]);
             const colorList0 = this.data2color(this.data[i]);
             for (let j = 0; j < posList0.length; j++) {
                 let head = posList0[j];
                 let color0 = colorList0.length === posList0.length ? colorList0[j] : colorList0[0];
-                this.threeSphere(this.scene, head, color0, this._transp, this._radius, this.data[i].tweet);
+                this.threeSphere(this.scene, head, color0, this._transp, sphereGeometry, this.data[i].tweet);
+
+                posList.push(head);
+                colorList.push(color0);
 
                 if (j < posList0.length - 1) {
                     const tail = posList0[j + 1];
                     const color1 = colorList0.length === posList0.length ? colorList0[j + 1] : colorList0[0];
                     this.threeGradTube(this.scene, head, tail, color0, color1, this._transp, this._radius * 0.5);
                 }
+                else if (i < this.data.length - 1 && j === posList0.length - 1) {
+                    const colorList1 = this.data2color(this.data[i + 1]);
+                    const color1 = colorList1[0];
+                    const posList1 = this.data2pos(this.data[i + 1]);
+                    const tail = posList1[0];
+                    this.threeGradTube(this.scene, head, tail, color0, color1, this._transp, this._radius * 0.5);
+                }
             }
-            if (i < this.data.length - 1) {
-                const pos0 = posList0[posList0.length - 1];
-                const color0 = colorList0.length === posList0.length ? colorList0[posList0.length - 1] : colorList0[0];
-                const colorList1 = this.data2color(this.data[i + 1]);
-                const color1 = colorList1[0];
-                const posList1 = this.data2pos(this.data[i + 1]);
-                const pos1 = posList1[0];
-                this.threeGradTube(this.scene, pos0, pos1, color0, color1, this._transp, this._radius * 0.5);
-            }
+            
         }
     }
 

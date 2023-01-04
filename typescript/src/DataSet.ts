@@ -9,15 +9,18 @@ export class DataSet {
     }
 
     public entry(csvString: string) {
-        let tmp: string[][] = this.parseCSV(csvString).slice(1);
-        this._list = tmp.map(d => {
+        // let tmp: string[][] = this.parseCSV(csvString).slice(1);
+        // this._list = tmp.map(line => {
+        this._list = csvString.split('\n').slice(1).map(line => {
+            let d: string[] = line.split(',');
             let emotions: string[] = [];
             if (d[5] !== '') {
                 emotions = d[5].split('-');
             } else {
                 emotions.push(Number(d[1]) > 0 ? 'positive' : 'negative');
             }
-            // console.log(...emotions);
+
+            // console.log(dayjs(d[0]).format(), d[0]);
             return new Data(
                 dayjs(d[0]).valueOf(),
                 Number(d[1]),
