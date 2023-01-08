@@ -4,6 +4,8 @@ import { Data } from './Data';
 export class DataSet {
 
     private _list: Data[] = [];
+    private _startDate: number = 0;
+    private _endDate: number = 0;
 
     constructor() {
     }
@@ -33,23 +35,23 @@ export class DataSet {
         });
         this._list.sort((a, b) => a.date - b.date);
 
-        let startDate = dayjs(this._list[0].date).valueOf();
-        let endDate = dayjs(this._list[this._list.length - 1].date).valueOf();
+        this._startDate = dayjs(this._list[0].date).valueOf();
+        this._endDate = dayjs(this._list[this._list.length - 1].date).valueOf();
 
         const today: number = dayjs().valueOf();
         this._list.forEach(d => {
             let newTweet: string = '';
             let tmp = d.tweet.split('');
-            let forgetRatio = (today - d.date) / (today - startDate);
+            let forgetRatio = (today - d.date) / (today - this._startDate);
             tmp.forEach(char => {
                 // ASCIIコード : 33 ~ 126
                 let code: number = Math.random() * (126 - 33) + 33;
                 let newChar: string = String.fromCharCode(code);
-    
+
                 let seed = Math.random();
-                if(seed < forgetRatio) {
+                if (seed < forgetRatio) {
                     newTweet += newChar;
-                } 
+                }
                 else {
                     newTweet += char;
                 }
@@ -66,6 +68,12 @@ export class DataSet {
         return this._list.filter(d => date0 <= d.date && d.date < date1);
     }
 
+    public get startDate() {
+        return this._startDate;
+    }
+    public get endDate() {
+        return this._endDate;
+    }
 
     private parseCSV(csv: string): string[][] {
         let tmp: string[] = [];

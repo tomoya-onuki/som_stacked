@@ -74,13 +74,11 @@ class Main {
             .then(csvString => {
                 let dataSet: DataSet = new DataSet();
                 dataSet.entry(csvString);
-                // dataSet.get().forEach(d => console.log(dayjs(d.date).format()));
-                // this.startDate = dayjs(dataSet.get()[0].date).startOf('month');
-                // this.endDate = dayjs(dataSet.get()[dataSet.get().length - 1].date).endOf('month');
-                // this.startDate = dayjs('2020-1-1').startOf('month');
-                // this.endDate = dayjs('2020-12-31').endOf('month');
-                this.startDate = dayjs('2017-1-1').startOf('month');
-                this.endDate = dayjs('2022-12-31').endOf('month');
+                
+                this.startDate = dayjs(dataSet.startDate).startOf('month');
+                this.endDate = dayjs(dataSet.endDate).endOf('month');
+                // this.startDate = dayjs('2017-1-1').startOf('month');
+                // this.endDate = dayjs('2022-12-31').endOf('month');
 
                 let startYear: number = Number(this.startDate.format('YYYY'));
                 let endYear: number = Number(this.endDate.format('YYYY'));
