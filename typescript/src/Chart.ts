@@ -278,7 +278,9 @@ export class Chart {
             for (let j = 0; j < posList0.length; j++) {
                 let head = posList0[j];
                 let color0 = colorList0.length === posList0.length ? colorList0[j] : colorList0[0];
-                this.threeSphere(this.scene, head, color0, this._transp, sphereGeometry, this.data[i].tweet);
+
+                let tweetHTML = this.data[i].tweet+ ' <br> - ' + dayjs(this.data[i].date).local().format('YYYY-MM-DD HH:mm:ss');
+                this.threeSphere(this.scene, head, color0, this._transp, sphereGeometry, tweetHTML);
 
                 posList.push(head);
                 colorList.push(color0);

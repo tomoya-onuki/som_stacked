@@ -14,7 +14,7 @@ export class Data {
         this._positive = _p;
         this._negative = _n;
         this._emotion = _e;
-        this._tweet = _t + ' <br> - ' + dayjs(_d).local().format('YYYY-MM-DD HH:mm:ss');
+        this._tweet = _t;
     }
 
     public get date() {
@@ -34,5 +34,8 @@ export class Data {
     }
     public get tweet() {
         return this._tweet;
+    }
+    public set tweet(t) {
+        this._tweet = t;
     }
 }

@@ -9,8 +9,7 @@ export class DataSet {
     }
 
     public entry(csvString: string) {
-        // let tmp: string[][] = this.parseCSV(csvString).slice(1);
-        // this._list = tmp.map(line => {
+
         this._list = csvString.split('\n').slice(1).map(line => {
             let d: string[] = line.split(',');
             let emotions: string[] = [];
@@ -20,17 +19,43 @@ export class DataSet {
                 emotions.push(Number(d[1]) > 0 ? 'positive' : 'negative');
             }
 
-            // console.log(dayjs(d[0]).format(), d[0]);
+            let date: number = dayjs(d[0]).valueOf();
+            let tweet: string = d[6];
+
             return new Data(
-                dayjs(d[0]).valueOf(),
+                date,
                 Number(d[1]),
                 Number(d[2]) / Number(d[4]),
                 Number(d[3]) / Number(d[4]),
                 emotions,
-                d[6]
+                tweet
             );
         });
         this._list.sort((a, b) => a.date - b.date);
+
+        let startDate = dayjs(this._list[0].date).valueOf();
+        let endDate = dayjs(this._list[this._list.length - 1].date).valueOf();
+
+        const today: number = dayjs().valueOf();
+        this._list.forEach(d => {
+            let newTweet: string = '';
+            let tmp = d.tweet.split('');
+            let forgetRatio = (today - d.date) / (today - startDate);
+            tmp.forEach(char => {
+                // ASCIIコード : 33 ~ 126
+                let code: number = Math.random() * (126 - 33) + 33;
+                let newChar: string = String.fromCharCode(code);
+    
+                let seed = Math.random();
+                if(seed < forgetRatio) {
+                    newTweet += newChar;
+                } 
+                else {
+                    newTweet += char;
+                }
+            });
+            d.tweet = newTweet;
+        })
     }
 
     public get() {
