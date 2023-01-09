@@ -60,7 +60,7 @@ class Main {
 
         // const axes = new THREE.AxesHelper(100);
         // this.scene.add(axes);
-        
+
         // this.stats.showPanel(0);
         // document.body.appendChild(this.stats.dom);
     }
@@ -74,7 +74,7 @@ class Main {
             .then(csvString => {
                 let dataSet: DataSet = new DataSet();
                 dataSet.entry(csvString);
-                
+
                 this.startDate = dayjs(dataSet.startDate).startOf('month');
                 this.endDate = dayjs(dataSet.endDate).endOf('month');
                 // this.startDate = dayjs('2017-1-1').startOf('month');
@@ -121,9 +121,11 @@ class Main {
 
     private addEvent() {
         const me = this;
+
         $(window).resize(function () {
             me.resize();
         });
+
         $('#close-ui').on('click', function () {
             $(this).hide();
             $('#ui').hide();
@@ -158,7 +160,8 @@ class Main {
                     'color': '#FFF',
                     'border-color': '#444'
                 });
-                $('#tweet-modals').css('color', '#FFF');
+                $('#tweet-modals').css('color', '#EEE');
+                $('#cursor').css('background', '#EEE')
                 d3.selectAll('text').attr('fill', '#fff');
             } else {
                 $('body').css({
@@ -175,6 +178,7 @@ class Main {
                     'border-color': '#ccc'
                 });
                 $('#tweet-modals').css('color', '#111');
+                $('#cursor').css('background', '#111')
                 d3.selectAll('text').attr('fill', '#111');
             }
         });
@@ -216,37 +220,54 @@ class Main {
             });
         });
 
-        let visTweetObjID: string[] = [];
-        $('#view').on('mousedown', function (event) {
-            const x: number = event.clientX;
-            const y: number = event.clientY;
-            let mouse: THREE.Vector2 = new THREE.Vector2();
-            mouse.x = (x / window.innerWidth) * 2 - 1;
-            mouse.y = -(y / window.innerHeight) * 2 + 1;
 
-            let raycaster = new THREE.Raycaster();
-            raycaster.setFromCamera(mouse, me.camera);
-            let intersects = raycaster.intersectObjects(me.scene.children);
-            // console.log(`${intersects[0].point.x}, ${intersects[0].point.y}, ${intersects[0].point.z}`);
-
-            //光線と交差したオブジェクトがある場合
-            if (intersects.length > 0) {
-                const obj = intersects[0].object;
-                if (!visTweetObjID.includes(obj.uuid)) {
-                    visTweetObjID.push(obj.uuid);
-
-                    let elem = $('<div></dvi>')
-                        .addClass('tweet')
-                        .offset({ top: y, left: x })
-                        .html(obj.name)
-                        .fadeOut(10000, () => {
-                            elem.remove();
-                            visTweetObjID = visTweetObjID.filter(id => id !== obj.uuid);
-                        });
-                    $('#tweet-modals').append(elem);
-                }
-            }
+        $('#ui').on('mousemove', function () {
+            $('#cursor').hide();
         });
+
+        let visTweetObjID: string[] = [];
+        $('#view')
+            .on('mousemove', function (e) {
+                let x = e.clientX;
+                let y = e.clientY;
+                $('#cursor')
+                    .show()
+                    .offset({
+                        "top": y,
+                        "left": x
+                    })
+                    .fadeOut(2000);
+            })
+            .on('mousedown', function (event) {
+                const x: number = event.clientX;
+                const y: number = event.clientY;
+                let mouse: THREE.Vector2 = new THREE.Vector2();
+                mouse.x = (x / window.innerWidth) * 2 - 1;
+                mouse.y = -(y / window.innerHeight) * 2 + 1;
+
+                let raycaster = new THREE.Raycaster();
+                raycaster.setFromCamera(mouse, me.camera);
+                let intersects = raycaster.intersectObjects(me.scene.children);
+                // console.log(`${intersects[0].point.x}, ${intersects[0].point.y}, ${intersects[0].point.z}`);
+
+                //光線と交差したオブジェクトがある場合
+                if (intersects.length > 0) {
+                    const obj = intersects[0].object;
+                    if (!visTweetObjID.includes(obj.uuid)) {
+                        visTweetObjID.push(obj.uuid);
+
+                        let elem = $('<div></dvi>')
+                            .addClass('tweet')
+                            .offset({ top: y, left: x })
+                            .html(obj.name)
+                            .fadeOut(10000, () => {
+                                elem.remove();
+                                visTweetObjID = visTweetObjID.filter(id => id !== obj.uuid);
+                            });
+                        $('#tweet-modals').append(elem);
+                    }
+                }
+            });
     }
 
     private render() {
