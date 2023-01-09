@@ -6,9 +6,9 @@ body {
     color: #fff;
     overflow: hidden;
     -webkit-user-select: none;
-	   -moz-user-select: none;
-	    -ms-user-select: none;
-	        user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 #view {
@@ -17,6 +17,7 @@ body {
     left: 0;
     width: 100vw;
     height: 100vh;
+    cursor: none;
 }
 
 #footer {
@@ -37,7 +38,7 @@ body {
 }
 
 #close-ui,
-#open-ui  {
+#open-ui {
     font-size: 140%;
     cursor: pointer;
     z-index: 2;
@@ -50,19 +51,21 @@ body {
 #open-ui:hover {
     opacity: 0.3;
 }
+
 #open-ui {
     display: none;
 }
 
 #date-color-scheme {
     font-size: 60%;
-    width: 200px;
+    width: 170px;
     height: 130px;
 }
+
 #emotion-color-scheme {
     font-size: 60%;
-    width: 200px;
-    height: 60px; 
+    width: 170px;
+    height: 60px;
     display: none;
 }
 
@@ -92,6 +95,7 @@ body {
     background: linear-gradient(90deg, rgba(85, 51, 255, 1) 0%, rgba(255, 255, 255, 1) 50%, rgba(255, 85, 51, 1) 100%);
     display: none;
 }
+
 #score-gradient div:nth-child(4) {
     background: linear-gradient(90deg, rgba(0, 0, 0, 1) 0%, rgba(255, 255, 255, 1) 100%);
     display: none;
@@ -115,6 +119,7 @@ body {
     color: #fff;
     position: absolute;
     font-size: 75%;
+    cursor: none;
 }
 
 .tweet {
@@ -220,4 +225,17 @@ button {
     color: #fff;
     font-size: 80%;
     cursor: pointer;
+}
+
+#cursor {
+    position: fixed;
+    background: #EEE;
+    transform: rotate(45deg);
+    border-radius: 3px;
+    width: 12px;
+    height: 12px;
+    margin: -6px 0 0 -6px;
+    z-index: 2;
+    opacity: 0.9;
+    pointer-events: none;
 }
